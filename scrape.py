@@ -36,23 +36,40 @@ def clean_status(status):
             'date': None
         }
 
+def a_tag_w_title(tag):
+    try:
+        return tag.hasattr('href') and tag.hasattr('title')
+    except TypeError as e:
+        print(f"Error: {e}")
+        print(f"Tag: {tag}")
+
 # Extract headers and rows
 headers = [th.text.strip() for th in table.find_all("th")]
 rows_data = []
 for row in table.find_all("tr"):
-    link = row.find("a").get("href").strip()
-    rule = row.find("a").text.strip()
-    name = row.find("strong").text.strip()
-    status = row.find("em").text.strip()
-    print(f"Rule: {rule}")
-    cleaned = clean_status(status)
-    rows_data.append({
-        'rule': rule,
-        'name': name,
-        'status': cleaned['status'],
-        'date': cleaned['date'],
-        'link': link
-    })
+    rule = None
+    link = None
+    links = row.find_all("a")
+    if links:
+        for i in links:
+            if a_tag_w_title(i):
+                link = i.get("href").strip()
+                rule = i.text.strip()
+            else:
+                continue
+        name = row.find("strong").text.strip()
+        status = row.find("em").text.strip()
+        # print(f"Rule: {rule}")
+        cleaned = clean_status(status)
+        rows_data.append({
+            'rule': rule,
+            'name': name,
+            'status': cleaned['status'],
+            'date': cleaned['date'],
+            'link': link
+        })
+    else:
+        print(f"Links: {links}")
 
 # print(headers)
 # print(rows_data[:3])
